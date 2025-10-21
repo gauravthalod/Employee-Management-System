@@ -1,276 +1,257 @@
--- Selecting Schema project_employee -- 
-USE project_employee;
 
--- Create table Address_Type --
-CREATE TABLE IF NOT EXISTS Address_Type(
-	address_id int auto_increment PRIMARY KEY,
-    address_type varchar(20) NOT NULL,
-    c tinytext
-    );
+CREATE SCHEMA IF NOT EXISTS project_employee;
+SET search_path TO project_employee;
 
--- Create table Employee_Type --
+-- Create table Address_Type
+CREATE TABLE IF NOT EXISTS Address_Type (
+    address_id SERIAL PRIMARY KEY,
+    address_type VARCHAR(20) NOT NULL,
+    c TEXT
+);
 
+-- create table Employee_Type
 CREATE TABLE IF NOT EXISTS Employee_Type (
-    employee_type_id int auto_increment PRIMARY KEY,
-    employee_type varchar(50),
-    employee_type_desc tinytext,
-    pay_type varchar(10),
-    compensation_package decimal(12,2)
+    employee_type_id SERIAL PRIMARY KEY,
+    employee_type VARCHAR(50),
+    employee_type_desc TEXT,
+    pay_type VARCHAR(10),
+    compensation_package NUMERIC(12,2)
 );
 
--- Create table Employee_Role --
+-- create table Employee_Role
 CREATE TABLE IF NOT EXISTS Employee_Role (
-    employee_role_id int PRIMARY KEY,
-    role_name varchar(30) Not null,
-    role_desc tinytext
+    employee_role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(30) NOT NULL,
+    role_desc TEXT
 );
 
--- Create table Organization --
-CREATE TABLE IF NOT EXISTS Organization(
-	organization_id int auto_increment primary KEY,
-    client_org_name varchar(20) NOT NULL,
-    client_org_code int(4) NOT NULL,
-    superior_org_name varchar(20) ,
+-- Create table Organization
+CREATE TABLE IF NOT EXISTS Organization (
+    organization_id SERIAL PRIMARY KEY,
+    client_org_name VARCHAR(20) NOT NULL,
+    client_org_code INTEGER NOT NULL,
+    superior_org_name VARCHAR(20),
     availability_date DATE,
-    top_level_name varchar(20) ,
-    ISO_country_code varchar(20) 
-    );
-    
--- Create table Person --    
-CREATE TABLE IF NOT EXISTS Person(
-	person_id int auto_increment PRIMARY KEY, 
-	first_name varchar(20) NOT NULL,
-	middle_name varchar(20) NOT NULL,
-	last_name varchar(20) NOT NULL,
-	age INT NOT NULL,
-	phone_number varchar(15) ,
-    email_id varchar(100) NOT NULL,
-    address_id int ,
-    insurance_id varchar(20) ,
-    device_type varchar(20) ,
-	FOREIGN KEY (address_id) REFERENCES Address_Type (address_id) 
-    );
+    top_level_name VARCHAR(20),
+    ISO_country_code VARCHAR(20)
+);
 
--- Create table Employee --
+-- create table Person
+CREATE TABLE IF NOT EXISTS Person (
+    person_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(20) NOT NULL,
+    middle_name VARCHAR(20) NOT NULL,
+    last_name VARCHAR(20) NOT NULL,
+    age INT NOT NULL,
+    phone_number VARCHAR(15),
+    email_id VARCHAR(100) NOT NULL,
+    address_id INT REFERENCES Address_Type(address_id),
+    insurance_id VARCHAR(20),
+    device_type VARCHAR(20)
+);
+
+-- Create table Employee
 CREATE TABLE IF NOT EXISTS Employee (
-    employee_id int auto_increment PRIMARY KEY,
-	employee_role_id int ,
-	employee_type_id int ,
-	organization_id int ,
-	person_id int not null,
-    home_country varchar(50),
-    work_country varchar(50),
-    gender Char(1), 
-    DOB date, 
-    martial_status varchar(20),
-    ethnicity varchar(20),
-    FOREIGN KEY(organization_id)
-        REFERENCES Organization(organization_id),
-    
-    FOREIGN KEY(employee_role_id) 
-		references Employee_Role(employee_role_id),
-    
-    FOREIGN KEY(person_id) 
-		references Person(person_id),
-    
-    FOREIGN KEY(employee_type_id)
-		references Employee_Type(employee_type_id)
+    employee_id SERIAL PRIMARY KEY,
+    employee_role_id INT REFERENCES Employee_Role(employee_role_id),
+    employee_type_id INT REFERENCES Employee_Type(employee_type_id),
+    organization_id INT REFERENCES Organization(organization_id),
+    person_id INT NOT NULL REFERENCES Person(person_id),
+    home_country VARCHAR(50),
+    work_country VARCHAR(50),
+    gender CHAR(1),
+    DOB DATE,
+    martial_status VARCHAR(20),
+    ethnicity VARCHAR(20)
 );
 
+-- Sample 
+INSERT INTO Employee_Role (employee_role_id, role_name, role_desc)
+VALUES (1, 'r1', 'rd1');
 
-insert into employee_role values(1,'r1','rd1');
-insert into address_type values(1,'a1','a1');
-insert into person values ('1','a','a','a',10,'1234567891','e1',1,1,'d1');
-insert into Employee_Type values('1','e1','ed1','p1',1.1);
-insert into organization values(1,'r1','s1',1,'s1','2012-01-01','t1','o1','iso1');
-INSERT INTO Employee values (null,1,1,1,1,'h1','w1','m','1997-01-01','s','I');
+INSERT INTO Address_Type (address_id, address_type, c)
+VALUES (1, 'a1', 'a1');
 
+INSERT INTO Person (person_id, first_name, middle_name, last_name, age, phone_number, email_id, address_id, insurance_id, device_type)
+VALUES (1, 'a', 'a', 'a', 10, '1234567891', 'e1', 1, '1', 'd1');
 
-desc organization;
-desc address_type;
-create view employeeView
-as
-select address_type.address_type_description, address_type.address_type, 
-employee_type.employee_type, employee_type.compensation_package,
-employee_role.role_name, employee_role.role_desc , 
-organization.Client_org_name, organization.top_level_name,
-person.first_name, person.middle_name, person.age,  
-employee.home_country, employee.DOB , employee.employee_role_id
-from address_type, employee_type, employee_role, organization, person, employee
-where address_type.address_id  = Person.address_id and employee_type.employee_type_id = employee.employee_type_id and
-employee_role.employee_role_id = employee.employee_role_id and organization.organization_id = employee.organization_id and
-person.person_id = employee.person_id;
+INSERT INTO Employee_Type (employee_type_id, employee_type, employee_type_desc, pay_type, compensation_package)
+VALUES (1, 'e1', 'ed1', 'p1', 1.1);
 
-select * from employeeView;
+INSERT INTO Organization (organization_id, client_org_name, client_org_code, superior_org_name, availability_date, top_level_name, ISO_country_code)
+VALUES (1, 'r1', 1001, 's1', '2012-01-01', 't1', 'iso1');
 
-create view employeeView_alternate
-as
-select 
-employee_type.employee_type, employee_type.compensation_package,
-employee_role.role_name, employee_role.role_desc , 
-organization.Client_org_name,  organization.top_level_name,
-person.first_name, person.middle_name, person.age,  
-employee.home_country, employee.DOB,employee.employee_role_id
-from address_type, employee, employee_type, organization, Person, employee_role
-inner join address_type on address_type.address_id  = Person.address_id
-inner join employee_type on  employee_type.employee_type_id = employee.employee_type_id
-inner join employee_role on employee_role.employee_role_id = employee.employee_role_id
-inner join organization on organization.organization_id = employee.organization_id 
-inner join person on person.person_id = employee.person_id;
+INSERT INTO Employee (employee_role_id, employee_type_id, organization_id, person_id, home_country, work_country, gender, DOB, martial_status, ethnicity)
+VALUES (1, 1, 1, 1, 'h1', 'w1', 'm', '1997-01-01', 's', 'I');
 
-select * from employeeView_alternate;
+-- View employee  View
+CREATE OR REPLACE VIEW employeeView AS
+SELECT 
+    a.c AS address_type_description,
+    a.address_type,
+    et.employee_type,
+    et.compensation_package,
+    er.role_name,
+    er.role_desc,
+    o.client_org_name,
+    o.top_level_name,
+    p.first_name,
+    p.middle_name,
+    p.age,
+    e.home_country,
+    e.DOB,
+    e.employee_role_id
+FROM Address_Type a
+JOIN Person p ON a.address_id = p.address_id
+JOIN Employee e ON p.person_id = e.person_id
+JOIN Employee_Type et ON e.employee_type_id = et.employee_type_id
+JOIN Employee_Role er ON e.employee_role_id = er.employee_role_id
+JOIN Organization o ON e.organization_id = o.organization_id;
 
+SELECT * FROM employeeView;
 
-DELIMITER $$
-CREATE PROCEDURE insert_address_type(
-	address_id int ,
-    address_type varchar(20) ,
-    address_type_description varchar(20) 
-    )
-BEGIN
-    INSERT INTO Address_Type values (address_id, address_type, address_type_description );
-END $$ 
-DELIMITER ;
+-- View employeeView_alternate
+CREATE OR REPLACE VIEW employeeView_alternate AS
+SELECT 
+    et.employee_type,
+    et.compensation_package,
+    er.role_name,
+    er.role_desc,
+    o.client_org_name,
+    o.top_level_name,
+    p.first_name,
+    p.middle_name,
+    p.age,
+    e.home_country,
+    e.DOB,
+    e.employee_role_id
+FROM Employee e
+JOIN Employee_Type et ON e.employee_type_id = et.employee_type_id
+JOIN Employee_Role er ON e.employee_role_id = er.employee_role_id
+JOIN Organization o ON e.organization_id = o.organization_id
+JOIN Person p ON p.person_id = e.person_id
+JOIN Address_Type a ON a.address_id = p.address_id;
 
+SELECT * FROM employeeView_alternate;
 
-DELIMITER $$
- 
-CREATE PROCEDURE insert_employee(
-IN employee_id int   ,
-IN employee_role_id int ,
-IN employee_type_id int ,
-IN organization_id int ,
-IN person_id int,
-IN home_country varchar(50),
-IN work_country varchar(50),
-IN gender Char(1), 
-IN DOB date, 
-IN martial_status varchar(20), 
-IN ethnicity varchar(20)
+-- Stored Procedures 
+CREATE OR REPLACE PROCEDURE insert_address_type(
+    address_type_val VARCHAR(20),
+    address_type_description TEXT
 )
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    INSERT INTO Employee values (employee_id,
-employee_role_id,
-employee_type_id,
-organization_id,
-person_id,
-home_country,
-work_country,
-gender,
-DOB,
-martial_status,
-ethnicity);
+    INSERT INTO Address_Type(address_type, c)
+    VALUES (address_type_val, address_type_description);
+END;
+$$;
 
-END $$ 
-DELIMITER ;
-
-DELIMITER $$
- 
-CREATE PROCEDURE insert_employee_role(
-IN employee_role_id int,
-IN role_name varchar(30),
-IN role_desc tinytext
+-- Procedure: insert_employee
+CREATE OR REPLACE PROCEDURE insert_employee(
+    employee_role_id INT,
+    employee_type_id INT,
+    organization_id INT,
+    person_id INT,
+    home_country VARCHAR(50),
+    work_country VARCHAR(50),
+    gender CHAR(1),
+    DOB DATE,
+    martial_status VARCHAR(20),
+    ethnicity VARCHAR(20)
 )
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    INSERT INTO Employee_Role values ( employee_role_id, role_name,role_desc);
-END $$ 
-DELIMITER ;
+    INSERT INTO Employee(employee_role_id, employee_type_id, organization_id, person_id,
+                         home_country, work_country, gender, DOB, martial_status, ethnicity)
+    VALUES (employee_role_id, employee_type_id, organization_id, person_id,
+            home_country, work_country, gender, DOB, martial_status, ethnicity);
+END;
+$$;
 
-
-DELIMITER $$
- 
-CREATE PROCEDURE insert_employee_type(
-employee_type_id int,
-employee_type varchar(50),
-employee_type_desc tinytext,
-pay_type varchar(10),
-compensation_package decimal(12,2)
+-- Procedure- insert_employee_role
+CREATE OR REPLACE PROCEDURE insert_employee_role(
+    role_name VARCHAR(30),
+    role_desc TEXT
 )
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    INSERT INTO Employee_Type values ( employee_type_id,
-employee_type,
-employee_type_desc,
-pay_type,
-compensation_package);
-END $$ 
-DELIMITER ;
+    INSERT INTO Employee_Role(role_name, role_desc)
+    VALUES (role_name, role_desc);
+END;
+$$;
 
-
-DELIMITER $$
- 
-CREATE PROCEDURE insert_organization(
-organization_id int,
-role_type_name varchar(20),
-supervisory_org_name varchar(20),
-supervisory_org_code int,
-superior_org_name varchar(20),
-availability_date DATE,
-top_level_name varchar(20),
-org_role_name varchar(20),
-ISO_country_code varchar(20)
+-- Procedure- insert_employee_type
+CREATE OR REPLACE PROCEDURE insert_employee_type(
+    employee_type VARCHAR(50),
+    employee_type_desc TEXT,
+    pay_type VARCHAR(10),
+    compensation_package NUMERIC(12,2)
 )
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    INSERT INTO organization values (organization_id,
-role_type_name,
-supervisory_org_name,
-supervisory_org_code,
-superior_org_name,
-availability_date,
-top_level_name,
-org_role_name,
-ISO_country_code
-);
-END $$ 
-DELIMITER ;
+    INSERT INTO Employee_Type(employee_type, employee_type_desc, pay_type, compensation_package)
+    VALUES (employee_type, employee_type_desc, pay_type, compensation_package);
+END;
+$$;
 
-DELIMITER $$
- 
-CREATE PROCEDURE insert_person(
-person_id int,
-first_name varchar(20),
-middle_name varchar(20),
-last_name varchar(20),
-age INT,
-phone_number varchar(15),
-email_id varchar(100),
-address_id int,
-insurance_id varchar(20),
-device_type varchar(20)
-
+-- Procedure - insert_organization
+CREATE OR REPLACE PROCEDURE insert_organization(
+    client_org_name VARCHAR(20),
+    client_org_code INT,
+    superior_org_name VARCHAR(20),
+    availability_date DATE,
+    top_level_name VARCHAR(20),
+    ISO_country_code VARCHAR(20)
 )
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    INSERT INTO Person values (person_id,
-first_name,
-middle_name,
-last_name,
-age,
-phone_number,
-email_id,
-address_id,
-insurance_id,
-device_type);
-END $$ 
-DELIMITER ;
+    INSERT INTO Organization(client_org_name, client_org_code, superior_org_name, availability_date, top_level_name, ISO_country_code)
+    VALUES (client_org_name, client_org_code, superior_org_name, availability_date, top_level_name, ISO_country_code);
+END;
+$$;
+
+-- Procedure - insert_person
+CREATE OR REPLACE PROCEDURE insert_person(
+    first_name VARCHAR(20),
+    middle_name VARCHAR(20),
+    last_name VARCHAR(20),
+    age INT,
+    phone_number VARCHAR(15),
+    email_id VARCHAR(100),
+    address_id INT,
+    insurance_id VARCHAR(20),
+    device_type VARCHAR(20)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO Person(first_name, middle_name, last_name, age, phone_number, email_id, address_id, insurance_id, device_type)
+    VALUES (first_name, middle_name, last_name, age, phone_number, email_id, address_id, insurance_id, device_type);
+END;
+$$;
+
+-- Example Calls
+CALL insert_employee_role('r2', 'rd2');
+CALL insert_address_type('a2', 'a2');
+CALL insert_person('b', 'b', 'b', 20, '9876543210', 'e2', 2, '2', 'd2');
+CALL insert_employee_type('e2', 'ed2', 'p2', 2.2);
+CALL insert_organization('r2', 2002, 's2', '2013-01-01', 't2', 'iso2');
+CALL insert_employee(2, 2, 2, 2, 'h2', 'w2', 'm', '1998-01-01', 's', 'I');
 
 
-call insert_employee_role (2,'r1','rd1');
-call insert_address_type (2,'a1','a1');
-call insert_person ('2','a','a','a',10,'1234567891','e1',2,2,'d1');
-call insert_Employee_Type ('2','e1','ed1','p1',1.1);
-call insert_organization (2,'r1','s1',2,'s1','2012-01-01','t1','o1','iso1');
-call insert_employee(null,2,2,2,2,'h1','w1','m','1997-01-01','s','I');
+SELECT * FROM Address_Type;
+SELECT * FROM Employee;
+SELECT * FROM Employee_Role;
+SELECT * FROM Employee_Type;
+SELECT * FROM Organization;
+SELECT * FROM Person;
 
 
+SELECT organization_id FROM Organization WHERE organization_id IS NULL;
 
-select * from address_type;
-select * from employee;
-select * from employee_role;	
-select * from employee_type;
-select * from organization;
-select * from person;
-
-select organization_id from organization where organization_id=null;
-delete Client_org_name from organization where organization_id is null;
-desc person;
-desc employee;
- 
+DELETE FROM Organization WHERE organization_id IS NULL;
